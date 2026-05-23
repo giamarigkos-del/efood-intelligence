@@ -899,7 +899,7 @@ setInterval(async () => {
   if (currentPage === 'catalog' && catalogLoaded) {
     const [prods, mods] = await Promise.all([
       sbFetch(`products?store_id=eq.${VENDOR_ID}&select=*`).catch(()=>null),
-      sbFetch(`modifier_options?store_id=eq.${VENDOR_ID}&select=*`).catch(()=>null)
+      sbFetch(`modifier_options?store_id=eq.${VENDOR_ID}&select=*&order=group_name,option_name`).catch(()=>null)
     ]);
     if (prods) allProducts = prods;
     if (mods)  allModifiers = mods;
