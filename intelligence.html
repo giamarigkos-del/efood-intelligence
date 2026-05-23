@@ -769,7 +769,7 @@ async function loadCatalog() {
     const [cats, prods, mods] = await Promise.all([
       sbFetch(`categories?store_id=eq.${VENDOR_ID}&select=*&order=sort_order`),
       sbFetch(`products?store_id=eq.${VENDOR_ID}&select=*`),
-      sbFetch(`modifier_options?store_id=eq.${VENDOR_ID}&select=*`)
+      sbFetch(`modifier_options?store_id=eq.${VENDOR_ID}&select=*&order=group_name,option_name`)
     ]);
     allCategories = Array.isArray(cats)  ? cats  : [];
     allProducts   = Array.isArray(prods) ? prods : [];
