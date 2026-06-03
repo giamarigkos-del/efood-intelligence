@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>efood Partner Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --red: #e8001c;
+    --dark-red: #c0001a;
+    --green: #00a651;
+    --blue: #1976d2;
+    --orange: #f57c00;
+    --sidebar-bg: #fff;
+    --main-bg: #f5f5f5;
+    --text: #222;
+    --text-light: #666;
+    --border: #e0e0e0;
+    --sidebar-width: 230px;
+  }
+
+  body { font-family: 'Nunito', sans-serif; background: var(--main-bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { width: var(--sidebar-width); background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100vh; overflow-y: auto; flex-shrink: 0; transition: left 0.25s ease; }
+  .sidebar-logo { padding: 16px; border-bottom: 1px solid var(--border); }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 18px; }
+  .logo-img { width: 32px; height: 32px; background: var(--red); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-img svg { width: 20px; height: 20px; }
+  .logo-text { color: var(--red); }
+  .logo-partner { background: var(--red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  .store-info { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .store-name { font-weight: 700; font-size: 14px; color: var(--text); display: flex; align-items: center; justify-content: space-between; }
+  .store-address { font-size: 12px; color: var(--text-light); margin-top: 4px; line-height: 1.4; font-weight: 600; }
+  .store-status-widget { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .status-widget-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); margin-bottom: 8px; }
+  .status-pill { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent; user-select: none; }
+  .status-pill.open { background: #e8f8f0; color: #00a651; border-color: #b3e8cb; }
+  .status-pill.closed { background: #fff0f1; color: var(--red); border-color: #ffc2c7; }
+  .status-pill:hover { opacity: 0.85; transform: scale(0.98); }
+  .status-pill-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .status-pill.open .status-pill-dot { background: #00a651; box-shadow: 0 0 0 3px rgba(0,166,81,0.2); animation: statusPulse 2s ease-in-out infinite; }
+  .status-pill.closed .status-pill-dot { background: var(--red); box-shadow: 0 0 0 3px rgba(232,0,28,0.2); }
+  @keyframes statusPulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(0,166,81,0.2); } 50% { box-shadow: 0 0 0 6px rgba(0,166,81,0); } }
+  .status-pill-text { flex: 1; }
+  .status-pill-hint { font-size: 9px; font-weight: 600; opacity: 0.7; }
+  .nav-section { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .nav-label { font-size: 10px; color: var(--text-light); padding: 4px 16px 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; transition: background 0.15s; }
+  .nav-item:hover { background: #f5f5f5; }
+  .nav-item.active { color: var(--red); font-weight: 700; background: #fff0f1; }
+  .nav-item.disabled { opacity: 0.45; cursor: default; pointer-events: none; }
+  .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .sidebar-collapse { margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-light); font-weight: 600; }
+
+  /* ── MAIN ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+  .topbar { background: white; border-bottom: 1px solid var(--border); padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 12px; }
+  .topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .page-title { font-size: 18px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .topbar-status { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; transition: all 0.3s ease; }
+  .topbar-status.open { background: #e8f8f0; color: #00a651; }
+  .topbar-status.closed { background: #fff0f1; color: var(--red); }
+  .topbar-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .topbar-status.open .topbar-status-dot { background: #00a651; }
+  .topbar-status.closed .topbar-status-dot { background: var(--red); }
+  .bell-icon { width: 20px; height: 20px; color: #666; cursor: pointer; }
+  .avatar { width: 32px; height: 32px; background: var(--red); border-radius: 50%; color: white; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .support-btn { background: var(--red); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s, transform 0.1s; white-space: nowrap; flex-shrink: 0; }
+  .support-btn:hover { background: var(--dark-red); transform: translateY(-1px); }
+  .support-btn:active { transform: translateY(0); }
+  .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; color: var(--text); flex-shrink: 0; }
+
+  /* ── PAGES ── */
+  .page { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .page.active { display: flex; }
+  .content { flex: 1; padding: 20px; overflow-y: auto; }
+  .orders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .orders-col h2 { font-size: 15px; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .count { background: #eee; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; color: var(--text-light); font-weight: 700; }
+  .count.has-orders { background: var(--red); color: white; }
+  .empty-state { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; color: var(--text-light); font-size: 13px; font-weight: 600; background: white; border-radius: 12px; border: 1px solid var(--border); }
+  .empty-state svg { width: 60px; height: 60px; margin-bottom: 12px; opacity: 0.3; }
+  .order-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .order-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .order-number { font-weight: 800; font-size: 15px; }
+  .order-meta { font-size: 11px; color: var(--text-light); margin-top: 2px; font-weight: 600; }
+  .order-timer { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--green); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: var(--green); flex-shrink: 0; }
+  .order-customer { display: flex; align-items: center; justify-content: space-between; }
+  .customer-name { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
+  .ready-btn { background: var(--blue); color: white; border: none; padding: 7px 14px; border-radius: 6px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+  /* ── PERFORMANCE PAGE ── */
+  .perf-content { flex: 1; overflow-y: auto; padding: 24px; }
+  .kpi-snapshot { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .kpi-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+  .kpi-card-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); margin-bottom: 6px; }
+  .kpi-card-value { font-size: 26px; font-weight: 900; color: var(--text); line-height: 1; }
+  .kpi-card-delta { font-size: 12px; font-weight: 700; margin-top: 4px; }
+  .kpi-card-delta.up { color: var(--green); }
+  .kpi-card-delta.down { color: var(--red); }
+  .kpi-card-delta.flat { color: var(--text-light); }
+  .perf-section { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .perf-section-title { font-size: 14px; font-weight: 800; margin-bottom: 16px; }
+  .sparkline { display: flex; align-items: flex-end; gap: 6px; height: 60px; }
+  .spark-bar { flex: 1; background: var(--red); border-radius: 4px 4px 0 0; opacity: 0.65; transition: opacity 0.2s; min-height: 4px; }
+  .spark-bar:hover { opacity: 1; }
+  .spark-bar.latest { opacity: 1; }
+  .spark-labels { display: flex; gap: 6px; margin-top: 6px; }
+  .spark-label { flex: 1; font-size: 10px; font-weight: 600; color: var(--text-light); text-align: center; }
+  .bench-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .bench-row:last-child { border-bottom: none; }
+  .bench-label { font-size: 13px; font-weight: 700; color: var(--text-light); }
+  .bench-vals { display: flex; align-items: center; gap: 12px; }
+  .bench-you { font-size: 16px; font-weight: 900; }
+  .bench-avg { font-size: 12px; font-weight: 600; color: var(--text-light); }
+  .bench-bar-wrap { height: 5px; background: #eee; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .bench-bar { height: 100%; border-radius: 3px; transition: width 1s cubic-bezier(0.16,1,0.3,1); }
+
+  /* ── CATALOG PAGE ── */
+  .catalog-banner { background: #fff8f0; border-bottom: 1px solid #ffe0b2; padding: 10px 20px; font-size: 13px; font-weight: 600; color: #e65100; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  /* ── PROACTIVE ALERT BANNER ── */
+  .alert-banner { display: none; background: #fff8e1; border-bottom: 2px solid #ffe082; padding: 10px 20px; font-size: 13px; font-weight: 600; color: #4e342e; flex-shrink: 0; flex-direction: column; gap: 8px; }
+  .alert-banner.visible { display: flex; }
+  .alert-banner-row { display: flex; align-items: center; gap: 10px; }
+  .alert-banner-icon { font-size: 18px; flex-shrink: 0; }
+  .alert-banner-text { flex: 1; line-height: 1.4; }
+  .alert-banner-text strong { color: #bf360c; }
+  .alert-banner-cta { background: var(--red); color: white; border: none; padding: 5px 12px; border-radius: 6px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .alert-banner-dismiss { background: none; border: none; font-size: 18px; color: #999; cursor: pointer; padding: 0 2px; flex-shrink: 0; line-height: 1; }
+  .alert-cards-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .alert-card { display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px; border-radius: 8px; flex: 1; min-width: 200px; cursor: pointer; transition: opacity 0.15s; }
+  .alert-card:hover { opacity: 0.85; }
+  .alert-card.weather { background: #e3f2fd; border: 1px solid #bbdefb; }
+  .alert-card.event   { background: #f3e5f5; border: 1px solid #e1bee7; }
+  .alert-card-icon { font-size: 20px; flex-shrink: 0; }
+  .alert-card-body { flex: 1; min-width: 0; }
+  .alert-card-title { font-size: 12px; font-weight: 800; color: #1565c0; }
+  .alert-card.event .alert-card-title { color: #6a1b9a; }
+  .alert-card-desc { font-size: 11px; color: #555; margin-top: 2px; line-height: 1.35; }
+  .alert-card-cta { font-size: 11px; font-weight: 700; color: var(--red); margin-top: 4px; }
+  .catalog-layout { display: flex; flex: 1; overflow: hidden; }
+  .catalog-sidebar { width: 220px; background: white; border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; padding: 12px 0; }
+  .cat-item { padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.15s; color: var(--text); }
+  .cat-item:hover { background: #f5f5f5; }
+  .cat-item.active { color: var(--red); background: #fff0f1; font-weight: 700; }
+  .cat-badge { background: #eee; border-radius: 10px; padding: 2px 7px; font-size: 11px; font-weight: 700; color: var(--text-light); }
+  .cat-item.active .cat-badge { background: var(--red); color: white; }
+  .catalog-main { flex: 1; overflow-y: auto; padding: 20px; }
+  .catalog-section-title { font-size: 16px; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .product-list { display: flex; flex-direction: column; gap: 10px; }
+  .product-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; transition: box-shadow 0.15s; }
+  .product-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .product-card.unavailable { opacity: 0.55; }
+  .product-info { flex: 1; min-width: 0; }
+  .product-name { font-weight: 700; font-size: 14px; }
+  .product-desc { font-size: 12px; color: var(--text-light); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .product-price { font-weight: 800; font-size: 15px; white-space: nowrap; }
+  .product-toggle { width: 40px; height: 22px; background: #ddd; border-radius: 11px; position: relative; cursor: pointer; transition: background 0.25s; flex-shrink: 0; }
+  .product-toggle.on { background: var(--green); }
+  .product-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: left 0.25s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .product-toggle.on::after { left: 20px; }
+  .catalog-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: var(--text-light); font-size: 14px; font-weight: 600; gap: 12px; }
+
+  /* ── MODIFIER EXPAND ── */
+  .product-card { cursor: pointer; flex-direction: column; align-items: stretch; padding: 0; }
+  .product-card-top { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+  .product-card-top .product-info { flex: 1; min-width: 0; }
+  .product-expand-btn { width: 22px; height: 22px; border-radius: 50%; background: #f0f0f0; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+  .product-expand-btn svg { transition: transform 0.25s; }
+  .product-expand-btn.open svg { transform: rotate(180deg); }
+  .product-expand-btn:hover { background: #e0e0e0; }
+  .modifier-section { border-top: 1px solid #f0f0f0; padding: 0 16px 12px; display: none; animation: modIn 0.2s ease both; }
+  .modifier-section.open { display: block; }
+  @keyframes modIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .modifier-group { margin-top: 10px; }
+  .modifier-group-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); margin-bottom: 6px; }
+  .modifier-options-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .mod-chip { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 100px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--border); background: white; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .mod-chip.available { border-color: #b3e8cb; background: #e8f8f0; color: #00a651; }
+  .mod-chip.unavailable { border-color: #ffc2c7; background: #fff0f1; color: var(--red); opacity: 0.7; }
+  .mod-chip:hover { transform: scale(0.97); }
+  .mod-chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .mod-chip.available .mod-chip-dot { background: #00a651; }
+  .mod-chip.unavailable .mod-chip-dot { background: var(--red); }
+  .mod-chip-price { font-size: 10px; font-weight: 700; opacity: 0.7; margin-left: 2px; }
+  .modifier-empty { font-size: 12px; color: #bbb; font-weight: 600; padding: 4px 0; }
+
+  /* ── SCHEDULE PAGE ── */
+  .schedule-content { flex: 1; overflow-y: auto; padding: 24px; }
+  .schedule-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .schedule-title { font-size: 18px; font-weight: 900; }
+  .schedule-edit-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text); transition: all 0.15s; }
+  .schedule-edit-btn:hover { background: #f5f5f5; }
+  .schedule-edit-btn.editing { background: var(--red); color: white; border-color: var(--red); }
+  .schedule-card { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; max-width: 560px; }
+  .schedule-row { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 16px; transition: background 0.15s; }
+  .schedule-row:last-child { border-bottom: none; }
+  .schedule-row:hover { background: #fafafa; }
+  .schedule-day { font-weight: 700; font-size: 14px; width: 100px; flex-shrink: 0; }
+  .schedule-time { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+  .schedule-time input { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; width: 80px; text-align: center; color: var(--text); background: white; }
+  .schedule-time input:focus { outline: none; border-color: var(--red); }
+  .schedule-sep { font-size: 13px; color: var(--text-light); margin: 0 4px; }
+  .schedule-save-bar { display: none; align-items: center; gap: 12px; padding: 14px 0 0; max-width: 560px; }
+  .schedule-save-bar.visible { display: flex; }
+  .schedule-save-btn { background: var(--red); color: white; border: none; padding: 10px 24px; border-radius: 8px; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+  .schedule-save-btn:hover { background: var(--dark-red); }
+  .schedule-cancel-btn { background: none; border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; color: var(--text-light); }
+  .schedule-info-banner { background: #f0f8ff; border: 1px solid #b3d9ff; border-radius: 10px; padding: 12px 16px; font-size: 13px; font-weight: 600; color: #1565c0; margin-bottom: 20px; max-width: 560px; display: flex; align-items: center; gap: 8px; }
+
+  /* ── CHAT PANEL (floating) ── */
+  .chat-panel { display: none; position: fixed; bottom: 20px; right: 20px; width: 360px; height: 480px; background: white; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); z-index: 1000; flex-direction: column; overflow: hidden; border: 1px solid var(--border); animation: panelIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .chat-panel.open { display: flex; }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .chat-panel-header { background: var(--red); color: white; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .chat-panel-header-left { display: flex; align-items: center; gap: 10px; }
+  .chat-avatar { width: 32px; height: 32px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .chat-title { font-weight: 800; font-size: 14px; }
+  .chat-subtitle { font-size: 11px; opacity: 0.8; font-weight: 600; }
+  .chat-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px; line-height: 1; }
+
+  /* Messages */
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 0; scrollbar-width: thin; scrollbar-color: #eee transparent; }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: #eee; border-radius: 2px; }
+  .cmsg { display: flex; gap: 8px; margin-bottom: 14px; animation: msgIn 0.3s cubic-bezier(0.16,1,0.3,1) both; }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .cmsg.user { flex-direction: row-reverse; }
+  .cmsg-avatar { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; margin-top: 2px; }
+  .cmsg.bot .cmsg-avatar { background: linear-gradient(135deg, var(--red), #ff4d6a); color: white; }
+  .cmsg.user .cmsg-avatar { background: #e8e8ed; color: var(--text); }
+  .cmsg-body { max-width: 80%; min-width: 0; }
+  .cmsg-bubble { padding: 9px 13px; border-radius: 14px; font-size: 13px; font-weight: 600; line-height: 1.5; word-break: break-word; }
+  .cmsg.bot .cmsg-bubble { background: #f5f5f5; border-bottom-left-radius: 4px; color: var(--text); }
+  .cmsg.user .cmsg-bubble { background: var(--red); color: white; border-bottom-right-radius: 4px; }
+  .cmsg-time { font-size: 10px; font-weight: 600; color: #aaa; margin-top: 3px; padding-left: 2px; }
+  .cmsg.user .cmsg-time { text-align: right; padding-right: 2px; }
+
+  /* Hypothesis */
+  .hypo-wrap { margin-top: 5px; padding: 7px 9px; background: #fafafe; border: 1px solid #e8e8f0; border-radius: 7px; }
+  .hypo-label { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; background: #fff8e1; color: #a06800; border: 1px solid #ffe082; border-radius: 100px; font-size: 10px; font-weight: 800; margin-bottom: 3px; }
+  .hypo-text { font-size: 12px; font-weight: 600; color: var(--text-light); line-height: 1.45; font-style: italic; display: none; margin-top: 5px; }
+  .hypo-text.expanded { display: block; }
+  .hypo-sources { display: none; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .hypo-sources.expanded { display: flex; }
+  .hypo-source-chip { padding: 2px 7px; background: #f0f4ff; color: #1976d2; border: 1px solid #c5d8ff; border-radius: 100px; font-size: 10px; font-weight: 700; }
+  .why-link { font-size: 10px; font-weight: 700; color: var(--blue); cursor: pointer; margin-top: 3px; display: inline-flex; align-items: center; gap: 3px; }
+  .why-link:hover { text-decoration: underline; }
+  .why-link .why-arrow { transition: transform 0.2s; display: inline-block; }
+  .why-link.open .why-arrow { transform: rotate(90deg); }
+
+  /* Typing */
+  .typing-ind { display: flex; gap: 8px; margin-bottom: 14px; }
+  .typing-bbl { background: #f5f5f5; border-radius: 14px; border-bottom-left-radius: 4px; padding: 10px 14px; display: flex; flex-direction: column; gap: 3px; }
+  .typing-dots { display: flex; gap: 4px; align-items: center; }
+  .typing-dots span { width: 6px; height: 6px; background: #bbb; border-radius: 50%; animation: tDot 1.2s ease-in-out infinite; }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes tDot { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
+  .typing-status { font-size: 10px; font-weight: 700; color: #aaa; min-height: 13px; }
+
+  /* Inline widgets */
+  .widget-inline { margin-top: 7px; background: white; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); animation: wIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+  @keyframes wIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+  .diff-card { padding: 12px; }
+  .diff-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa; margin-bottom: 8px; }
+  .diff-row { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+  .diff-old { padding: 3px 7px; background: #fff0f1; color: var(--red); border-radius: 5px; text-decoration: line-through; font-size: 12px; font-weight: 700; }
+  .diff-arrow { color: #bbb; font-size: 11px; }
+  .diff-new { padding: 3px 7px; background: #e8f8f0; color: var(--green); border-radius: 5px; font-size: 12px; font-weight: 700; }
+  .diff-btns { display: flex; gap: 7px; }
+  .diff-btn { flex: 1; padding: 7px; border-radius: 7px; border: none; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.15s; }
+  .diff-btn.cancel { background: #f5f5f5; color: var(--text-light); border: 1px solid var(--border); }
+  .diff-btn.cancel:hover { background: #eee; }
+  .diff-btn.confirm { background: var(--green); color: white; }
+  .diff-btn.confirm:hover { background: #007a3d; }
+  .kpi-mini { padding: 10px; }
+  .kpi-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .kmi-item { text-align: center; padding: 7px 4px; background: #f5f5f5; border-radius: 7px; }
+  .kmi-val { font-size: 16px; font-weight: 900; color: var(--text); }
+  .kmi-lbl { font-size: 9px; font-weight: 700; color: #bbb; text-transform: uppercase; margin-top: 2px; }
+  .kmi-d { font-size: 10px; font-weight: 800; margin-top: 1px; }
+  .qr-wrap { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .qr-chip { padding: 5px 11px; background: white; border: 1px solid var(--border); border-radius: 100px; font-size: 12px; font-weight: 700; color: var(--text); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .qr-chip:hover { border-color: var(--red); color: var(--red); background: #fff0f1; }
+  .undo-chip { display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; padding: 4px 9px; background: white; border: 1px solid var(--border); border-radius: 100px; font-size: 11px; font-weight: 700; color: var(--text-light); cursor: pointer; transition: all 0.15s; }
+  .undo-chip:hover { border-color: var(--orange); color: var(--orange); }
+  .undo-timer { font-size: 10px; font-weight: 800; color: #bbb; }
+
+  /* Chat input */
+  .chat-input-bar { height: 58px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 0 12px; background: white; flex-shrink: 0; }
+  .chat-input { flex: 1; height: 36px; border: 1.5px solid var(--border); border-radius: 100px; padding: 0 14px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); outline: none; background: #f5f5f5; transition: all 0.2s; }
+  .chat-input:focus { border-color: var(--red); background: white; box-shadow: 0 0 0 3px rgba(232,0,28,0.06); }
+  .chat-input::placeholder { color: #bbb; }
+  .chat-input:disabled { opacity: 0.5; cursor: not-allowed; }
+  .chat-send { width: 36px; height: 36px; border-radius: 50%; background: var(--red); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+  .chat-send:hover { background: var(--dark-red); transform: scale(1.05); }
+  .chat-send:active { transform: scale(0.97); }
+  .chat-send:disabled { background: #ddd; cursor: not-allowed; transform: none; }
+  .chat-send svg { width: 15px; height: 15px; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #222; color: white; padding: 10px 20px; border-radius: 100px; font-size: 13px; font-weight: 700; z-index: 9999; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; display: flex; align-items: center; gap: 8px; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Sidebar overlay */
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+  .sidebar-overlay.active { display: block; }
+
+  @media (max-width: 768px) {
+    :root { --sidebar-width: 260px; }
+    .sidebar { position: fixed; left: -280px; top: 0; z-index: 100; box-shadow: 2px 0 12px rgba(0,0,0,0.15); }
+    .sidebar.open { left: 0; }
+    .main { width: 100%; }
+    .hamburger { display: flex; }
+    .topbar { padding: 0 12px; height: 52px; }
+    .page-title { font-size: 15px; }
+    .support-btn span { display: none; }
+    .support-btn { padding: 8px 10px; }
+    .content { padding: 14px 12px; }
+    .orders-grid { grid-template-columns: 1fr; gap: 14px; }
+    .chat-panel { width: 100vw; height: 100vh; bottom: 0; right: 0; border-radius: 0; }
+    .topbar-status span { display: none; }
+    .kpi-snapshot { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo">
+      <img src="https://giamarigkos-del.github.io/efood-intelligence/efood-logo.svg" alt="efood" style="height:32px;width:auto;" onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';">
+      <div id="logoFallback" style="display:none;align-items:center;gap:8px;"><div class="logo-img"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" stroke-width="2" stroke-linejoin="round"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="2" stroke-linejoin="round"/></svg></div><span class="logo-text">efood</span><span class="logo-partner">partner</span></div>
+    </div>
+  </div>
+
+  <div class="store-info">
+    <div class="store-name">
+      <span id="sidebarStoreName">—</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="store-address" id="sidebarStoreAddress">Φόρτωση...</div>
+  </div>
+
+  <div class="store-status-widget">
+    <div class="status-widget-label">Κατάσταση καταστήματος</div>
+    <div class="status-pill closed" id="statusPill" onclick="toggleStatus()">
+      <div class="status-pill-dot"></div>
+      <div class="status-pill-text">
+        <div id="statusPillText">Κλειστό</div>
+        <div class="status-pill-hint">Πάτησε για αλλαγή</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Απόδοση</div>
+    <div class="nav-item active" id="nav-orders" onclick="showPage('orders')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Live παραγγελίες
+    </div>
+    <div class="nav-item disabled">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Πίνακας ελέγχου
+    </div>
+    <div class="nav-item" id="nav-performance" onclick="showPage('performance')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Απόδοση
+    </div>
+    <div class="nav-item disabled">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Ιστορικό παραγγελιών
+    </div>
+    <div class="nav-item disabled">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Αξιολογήσεις
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Ανάπτυξη</div>
+    <div class="nav-item disabled">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Πεινιάτα / Προσφορές
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Διαχείριση</div>
+    <div class="nav-item" id="nav-catalog" onclick="showPage('catalog')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Διαχείριση καταλόγου
+    </div>
+    <div class="nav-item" id="nav-schedule" onclick="showPage('schedule')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Ωράριο Λειτουργίας
+    </div>
+    <div class="nav-item disabled">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Στατιστικά
+    </div>
+    <div class="nav-item disabled">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Ρυθμίσεις
+    </div>
+  </div>
+
+  <div class="sidebar-collapse">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15"><polyline points="15 18 9 12 15 6"/></svg>
+    Σύμπτυξη
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="page-title" id="pageTitle">Live παραγγελίες</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-status closed" id="topbarStatus">
+        <div class="topbar-status-dot"></div>
+        <span id="topbarStatusText">Κλειστό</span>
+      </div>
+      <svg class="bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <button class="support-btn" onclick="toggleChat()">
+        ✨ <span>Βοηθός</span>
+      </button>
+      <div class="avatar-wrap" style="position:relative;">
+        <div class="avatar" id="topbarAvatar" onclick="toggleAvatarMenu()">—</div>
+        <div id="avatarMenu" style="display:none;position:absolute;right:0;top:calc(100% + 8px);background:white;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:140px;overflow:hidden;z-index:999;">
+          <div onclick="doLogout()" style="padding:12px 16px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#e8001c;cursor:pointer;display:flex;align-items:center;gap:8px;" onmouseover="this.style.background='#fff0f1'" onmouseout="this.style.background='white'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Αποσύνδεση
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROACTIVE ALERT BANNER -->
+  <div class="alert-banner" id="alertBanner">
+    <div class="alert-banner-row">
+      <span class="alert-banner-icon" id="alertBannerIcon">⚡</span>
+      <span class="alert-banner-text" id="alertBannerText">—</span>
+      <button class="alert-banner-cta" id="alertBannerCta" onclick="alertCtaClick()">Ρώτα τον agent →</button>
+      <button class="alert-banner-dismiss" onclick="dismissAlert()" title="Κλείσιμο">✕</button>
+    </div>
+    <div class="alert-cards-row" id="alertCardsRow"></div>
+  </div>
+
+  <!-- PAGE: ORDERS (Live) -->
+  <div class="page active" id="page-orders">
+    <div class="content">
+      <div class="orders-grid">
+        <div class="orders-col">
+          <h2>Νέα <span class="count">0</span></h2>
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            Δεν υπάρχουν νέες παραγγελίες
+          </div>
+        </div>
+        <div class="orders-col">
+          <h2>Έγινε αποδεκτή <span class="count has-orders">1</span></h2>
+          <div class="order-card">
+            <div class="order-card-top">
+              <div><div class="order-number">#246</div><div class="order-meta">654006322 · 3 προϊόντα</div></div>
+              <div class="order-timer">23</div>
+            </div>
+            <div class="order-customer">
+              <div class="customer-name">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                MARIA SKARVELAKI
+              </div>
+              <button class="ready-btn">Έτοιμη</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: PERFORMANCE -->
+  <div class="page" id="page-performance">
+    <div class="perf-content">
+      <div class="kpi-snapshot" id="kpiSnapshot">
+        <div class="kpi-card"><div class="kpi-card-label">Παραγγελίες / μήνα</div><div class="kpi-card-value" id="kpi-orders">—</div><div class="kpi-card-delta flat" id="kpi-orders-d">—</div></div>
+        <div class="kpi-card"><div class="kpi-card-label">Μέση Βαθμολογία</div><div class="kpi-card-value" id="kpi-rating">—</div><div class="kpi-card-delta flat" id="kpi-rating-d">—</div></div>
+        <div class="kpi-card"><div class="kpi-card-label">Τάση 5 εβδομάδων</div><div class="kpi-card-value" id="kpi-trend">—</div><div class="kpi-card-delta flat" id="kpi-trend-d">—</div></div>
+        <div class="kpi-card"><div class="kpi-card-label">vs Παρόμοια</div><div class="kpi-card-value" id="kpi-bench">—</div><div class="kpi-card-delta flat" id="kpi-bench-d">μέσος όρος</div></div>
+      </div>
+      <div class="perf-section">
+        <div class="perf-section-title">📈 Τάση παραγγελιών</div>
+        <div class="sparkline" id="sparkline"></div>
+        <div class="spark-labels" id="sparkLabels"></div>
+      </div>
+      <div class="perf-section">
+        <div class="perf-section-title">🏆 Σύγκριση με παρόμοια καταστήματα</div>
+        <div id="benchRows"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: CATALOG -->
+  <div class="page" id="page-catalog">
+    <div class="catalog-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Αλλαγές διαθεσιμότητας γίνονται άμεσα. Μπορείς επίσης να ζητήσεις αλλαγές μέσω του ✨ Βοηθού.
+    </div>
+    <div class="catalog-layout">
+      <div class="catalog-sidebar" id="catalogSidebar">
+        <div style="padding:6px 16px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-light);">Κατηγορίες</div>
+        <div id="catList"><div style="padding:16px;font-size:13px;color:var(--text-light);">Φόρτωση...</div></div>
+      </div>
+      <div class="catalog-main" id="catalogMain">
+        <div class="catalog-loading" id="catalogLoading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40" style="opacity:0.3"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          Φόρτωση καταλόγου...
+        </div>
+        <div id="catalogProducts" style="display:none;">
+          <div class="catalog-section-title" id="catalogCatTitle">—</div>
+          <div class="product-list" id="productList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: SCHEDULE -->
+  <div class="page" id="page-schedule">
+    <div class="schedule-content">
+      <div class="schedule-info-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Το ωράριο ενημερώνεται live από τη βάση δεδομένων. Αλλαγές μέσω ✨ Βοηθού εμφανίζονται αυτόματα.
+      </div>
+      <div class="schedule-header-row">
+        <div class="schedule-title">Ωράριο Λειτουργίας</div>
+        <button class="schedule-edit-btn" id="scheduleEditBtn" onclick="toggleScheduleEdit()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Επεξεργασία
+        </button>
+      </div>
+      <div class="schedule-card">
+        <div id="scheduleRows"><div style="padding:20px;text-align:center;font-size:13px;color:var(--text-light);">Φόρτωση ωραρίου...</div></div>
+      </div>
+      <div class="schedule-save-bar" id="scheduleSaveBar">
+        <button class="schedule-save-btn" onclick="saveSchedule()">Αποθήκευση αλλαγών</button>
+        <button class="schedule-cancel-btn" onclick="cancelScheduleEdit()">Ακύρωση</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FLOATING CHAT PANEL (✨ Βοηθός) -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-panel-header">
+    <div class="chat-panel-header-left">
+      <div class="chat-avatar">✨</div>
+      <div>
+        <div class="chat-title">efood Intelligence Agent</div>
+        <div class="chat-subtitle">AI Βοηθός · Πάντα διαθέσιμος</div>
+      </div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-bar">
+    <input type="text" class="chat-input" id="chatInput" placeholder="Γράψε ένα μήνυμα..." autocomplete="off" disabled
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"
+      oninput="document.getElementById('chatSend').disabled=!this.value.trim()">
+    <button class="chat-send" id="chatSend" onclick="sendMessage()" disabled>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22 11 13 2 9l20-7z" stroke="white" stroke-width="2" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ── CONFIG ─────────────────────────────────────
+const SUPABASE_URL  = 'https://qsucsskjqqiwjlmuhctk.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdWNzc2tqcXFpd2psbXVoY3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMjg5OTgsImV4cCI6MjA5NDYwNDk5OH0.TVs98yJdNkpXH6ZUfeLxyi8oSt-s4DBts06cTj20RTY';
+const N8N_WEBHOOK   = 'https://efood-demo.app.n8n.cloud/webhook/cb875f4a-bf85-4c6f-8df3-47ac1d4fd784/chat';
+const SB_HDR        = { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Accept': 'application/json' };
+const THINKING      = ['Ανακτώ τα δεδομένα σου...','Αναλύω τις παραγγελίες...','Ελέγχω τα στοιχεία...','Προετοιμάζω απάντηση...','Επεξεργάζομαι...'];
+const DAYS          = ['Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Παρασκευή','Σάββατο','Κυριακή'];
+
+// ── STATE ──────────────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+const VENDOR_ID = urlParams.get('vendor') || '';
+if (!VENDOR_ID) window.location.href = 'intelligence-login.html';
+
+let storeData       = null;
+let sessionId       = 'si_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+let isTyping        = false;
+let thinkingIv      = null;
+let chatOpen        = false;
+let chatInitialized = false;
+let currentPage     = 'orders';
+let catalogLoaded   = false;
+let scheduleLoaded  = false;
+let scheduleEditing = false;
+let originalSchedule= null;
+let allCategories   = [];
+let allProducts     = [];
+let allModifiers    = [];
+let activeCatId     = null;
+let expandedCards   = new Set();
+
+// ── HELPERS ────────────────────────────────────
+function getInitials(name) {
+  if (!name) return '—';
+  const w = name.trim().split(/\s+/);
+  return w.length === 1 ? w[0].slice(0,2).toUpperCase() : (w[0][0]+w[1][0]).toUpperCase();
+}
+
+async function sbFetch(path) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, { headers: SB_HDR });
+  return r.json();
+}
+
+async function sbPatch(table, match, body) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${table}?${match}`, {
+    method: 'PATCH',
+    headers: { ...SB_HDR, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify(body)
+  });
+}
+
+function safeJSON(raw) {
+  if (typeof raw !== 'string') return raw;
+  try { return JSON.parse(raw); } catch(e) {}
+  const c = raw.replace(/```(?:json)?\s*/gi,'').replace(/```\s*$/g,'').trim();
+  try { return JSON.parse(c); } catch(e) {}
+  const m = c.match(/\{[\s\S]*\}/);
+  if (m) { try { return JSON.parse(m[0]); } catch(e) {} }
+  return { output: raw, hypothesis: null, widget: null, quick_replies: [] };
+}
+
+async function fetchRetry(url, opts, n=2) {
+  let last;
+  for (let i=0; i<=n; i++) {
+    try {
+      const r = await fetch(url, opts);
+      if (r.status >= 500 && i < n) { await new Promise(r=>setTimeout(r,800*(i+1))); continue; }
+      return r;
+    } catch(e) { last=e; if (i<n) await new Promise(r=>setTimeout(r,800*(i+1))); }
+  }
+  throw last;
+}
+
+function showToast(msg, isGood=true, dur=3000) {
+  const t = document.getElementById('toast');
+  t.innerHTML = (isGood ? '✓ ' : '✗ ') + msg;
+  t.style.background = isGood ? '#00a651' : '#e8001c';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>'); }
+function escA(s) { return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// ── INIT ───────────────────────────────────────
+(async function init() {
+  await loadStore();
+  loadProactiveAlerts();
+  setInterval(pollStatus, 4000);
+})();
+
+// ── STORE LOAD / POLL ──────────────────────────
+async function loadStore() {
+  try {
+    const rows = await sbFetch(`partners?store_id=eq.${VENDOR_ID}&select=*`);
+    if (rows?.length > 0) {
+      storeData = rows[0];
+      renderSidebar();
+      renderPerformance();
+    }
+  } catch(e) {
+    document.getElementById('sidebarStoreAddress').textContent = 'Σφάλμα φόρτωσης';
+  }
+}
+
+async function pollStatus() {
+  try {
+    const rows = await sbFetch(`partners?store_id=eq.${VENDOR_ID}&select=status,hours_open,hours_close`);
+    if (!rows?.length) return;
+    const newStatus = rows[0].status;
+    if (storeData && newStatus !== storeData.status) {
+      storeData.status = newStatus;
+      renderStatusUI();
+      showToast('🤖 Agent: Κατάστημα ' + (newStatus === 'open' ? 'ενεργοποιήθηκε!' : 'απενεργοποιήθηκε!'), newStatus === 'open');
+    }
+    if (storeData) {
+      storeData.hours_open  = rows[0].hours_open;
+      storeData.hours_close = rows[0].hours_close;
+    }
+  } catch(e) {}
+}
+
+function renderSidebar() {
+  if (!storeData) return;
+  document.getElementById('sidebarStoreName').textContent    = storeData.name || '—';
+  document.getElementById('sidebarStoreAddress').textContent = (storeData.region || '—') + ' · ' + VENDOR_ID;
+  document.getElementById('topbarAvatar').textContent        = getInitials(storeData.name || '');
+  document.title = (storeData.name || 'Partner') + ' · efood Intelligence';
+  renderStatusUI();
+}
+
+function renderStatusUI() {
+  const isOpen = storeData?.status === 'open';
+  const pill   = document.getElementById('statusPill');
+  pill.className = 'status-pill ' + (isOpen ? 'open' : 'closed');
+  document.getElementById('statusPillText').textContent   = isOpen ? 'Ανοιχτό' : 'Κλειστό';
+  const tb = document.getElementById('topbarStatus');
+  tb.className = 'topbar-status ' + (isOpen ? 'open' : 'closed');
+  document.getElementById('topbarStatusText').textContent = isOpen ? 'Ανοιχτό' : 'Κλειστό';
+}
+
+// ── PROACTIVE ALERTS ───────────────────────────
+let alertDismissed = false;
+let alertCtaMessage = '';
+
+async function loadProactiveAlerts() {
+  if (alertDismissed || !storeData) return;
+  try {
+    const city = (storeData.region || 'Θεσσαλονίκη').split(' ')[0];
+    const today = new Date().toISOString().slice(0,10);
+    const rows = await sbFetch(
+      `predictions_cache?city=eq.${encodeURIComponent(city)}&forecast_date=eq.${today}&select=weather,events,city,forecast_date`
+    ).catch(() => null);
+    if (!rows?.length) return;
+    const pred = rows[0];
+    const weather = typeof pred.weather === 'string' ? JSON.parse(pred.weather) : pred.weather;
+    const events  = typeof pred.events  === 'string' ? JSON.parse(pred.events)  : pred.events;
+
+    const cards = [];
+    const msgs  = [];
+    let primaryIcon = '⚡';
+    let primaryText = '';
+    let ctaText = '';
+
+    // Weather card
+    if (weather?.demand_signal === 'up' || weather?.demand_signal === 'opportunity') {
+      const icon = weather.condition?.toLowerCase().includes('rain') ? '🌧' : '☀️';
+      const est  = weather.demand_estimate || '';
+      cards.push({ type: 'weather', icon, title: 'Πρόβλεψη ζήτησης σήμερα', desc: (weather.summary || '') + (est ? ' · ' + est : ''), cta: 'Δες ανάλυση →', prompt: 'Δείξε μου πρόβλεψη ζήτησης για σήμερα' });
+      msgs.push((weather.summary || '') + (est ? ' (' + est + ')' : ''));
+      primaryIcon = icon;
+    }
+
+    // Events card
+    const evList = Array.isArray(events) ? events : (events?.items || []);
+    if (evList.length > 0) {
+      const ev = evList[0];
+      const evName = ev.name || ev.title || 'Τοπική εκδήλωση';
+      const evNote = ev.impact_note || ev.note || '';
+      cards.push({ type: 'event', icon: '🎵', title: evName, desc: evNote || 'Μπορεί να επηρεάσει ζήτηση σήμερα.', cta: 'Δες πρόβλεψη →', prompt: 'Τι επίδραση έχει η εκδήλωση "' + evName + '" στις παραγγελίες μου;' });
+      msgs.push('Εκδήλωση: ' + evName);
+      if (!primaryText) primaryIcon = '🎵';
+    }
+
+    if (!cards.length) return;
+
+    // Compose banner text
+    if (msgs.length === 1) {
+      primaryText = msgs[0];
+      ctaText = cards[0].prompt;
+    } else {
+      primaryText = msgs.length + ' σήματα ζήτησης για σήμερα';
+      ctaText = 'Δείξε μου πρόβλεψη ζήτησης για σήμερα';
+    }
+
+    document.getElementById('alertBannerIcon').textContent = primaryIcon;
+    document.getElementById('alertBannerText').innerHTML   = '<strong>Σήμερα:</strong> ' + primaryText;
+    alertCtaMessage = ctaText;
+
+    // Build inline cards
+    const row = document.getElementById('alertCardsRow');
+    if (cards.length > 1) {
+      row.innerHTML = '';
+      cards.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'alert-card ' + c.type;
+        el.innerHTML = `<span class="alert-card-icon">${c.icon}</span>
+          <div class="alert-card-body">
+            <div class="alert-card-title">${escH(c.title)}</div>
+            <div class="alert-card-desc">${escH(c.desc)}</div>
+            <div class="alert-card-cta">${escH(c.cta)}</div>
+          </div>`;
+        el.onclick = () => { if (!chatOpen) toggleChat(); setTimeout(() => { document.getElementById('chatInput').value = c.prompt; sendMessage(); }, 100); };
+        row.appendChild(el);
+      });
+    } else {
+      row.style.display = 'none';
+    }
+
+    document.getElementById('alertBanner').classList.add('visible');
+  } catch(e) { /* silent fail */ }
+}
+
+function dismissAlert() {
+  alertDismissed = true;
+  document.getElementById('alertBanner').classList.remove('visible');
+}
+
+function alertCtaClick() {
+  dismissAlert();
+  if (!chatOpen) toggleChat();
+  setTimeout(() => { document.getElementById('chatInput').value = alertCtaMessage; sendMessage(); }, 150);
+}
+
+// ── STATUS TOGGLE (sidebar) ────────────────────
+function toggleStatus() {
+  if (!storeData) return;
+  const newStatus = storeData.status === 'open' ? 'closed' : 'open';
+  const oldLabel  = storeData.status === 'open' ? 'Ανοιχτό' : 'Κλειστό';
+  const newLabel  = newStatus === 'open' ? 'Ανοιχτό' : 'Κλειστό';
+  if (!chatOpen) toggleChat();
+  addBotMsg('Επιβεβαιώνεις αλλαγή κατάστασης;', buildDiffCard(oldLabel, newLabel,
+    async () => {
+      await sbPatch('partners', `store_id=eq.${VENDOR_ID}`, { status: newStatus });
+      storeData.status = newStatus;
+      renderStatusUI();
+      addBotMsg('✓ Κατάσταση ενημερώθηκε σε ' + newLabel + '.', buildUndoChip(async () => {
+        await sbPatch('partners', `store_id=eq.${VENDOR_ID}`, { status: storeData.status==='open'?'closed':'open' });
+        storeData.status = newStatus==='open'?'closed':'open';
+        renderStatusUI();
+        addBotMsg('↩ Αναίρεση ολοκληρώθηκε.');
+        showToast('Αναίρεση', true);
+      }));
+      showToast(newLabel, newStatus === 'open');
+    },
+    () => addBotMsg('Εντάξει, δεν έγινε καμία αλλαγή.')
+  ));
+}
+
+// ── PERFORMANCE ────────────────────────────────
+function renderPerformance() {
+  if (!storeData) return;
+  const trend = storeData.weekly_orders_trend || [];
+  const max   = Math.max(...trend, 1);
+  const trendPct = trend.length >= 2 && trend[0] > 0 ? Math.round(((trend[trend.length-1]-trend[0])/trend[0])*100) : 0;
+  const vs    = (storeData.monthly_orders||0) - (storeData.competitor_avg_orders||0);
+
+  // KPI cards
+  document.getElementById('kpi-orders').textContent   = storeData.monthly_orders || '—';
+  document.getElementById('kpi-orders-d').textContent = 'αυτόν τον μήνα';
+  document.getElementById('kpi-rating').textContent   = storeData.avg_rating ? storeData.avg_rating + ' ★' : '—';
+  document.getElementById('kpi-rating-d').textContent = 'μέση βαθμολογία';
+  const tEl = document.getElementById('kpi-trend');
+  tEl.textContent = trendPct > 0 ? '+'+trendPct+'%' : trendPct+'%';
+  document.getElementById('kpi-trend-d').textContent = '5 εβδ. τάση';
+  document.getElementById('kpi-trend-d').className = 'kpi-card-delta ' + (trendPct>0?'up':trendPct<0?'down':'flat');
+  const bEl = document.getElementById('kpi-bench');
+  bEl.textContent = vs > 0 ? '+'+vs : String(vs);
+  document.getElementById('kpi-bench-d').className = 'kpi-card-delta ' + (vs>=0?'up':'down');
+
+  // Sparkline
+  const sp = document.getElementById('sparkline');
+  sp.innerHTML = trend.map((v,i) => `<div class="spark-bar${i===trend.length-1?' latest':''}" style="height:${Math.round((v/max)*100)}%" title="${v}"></div>`).join('');
+  document.getElementById('sparkLabels').innerHTML = trend.map((_,i) => `<div class="spark-label">Εβδ.${i+1}</div>`).join('');
+
+  // Benchmark
+  const avgO = storeData.competitor_avg_orders || 100;
+  const avgR = storeData.competitor_avg_rating || 4.0;
+  const myO  = storeData.monthly_orders || 0;
+  const myR  = storeData.avg_rating || 0;
+  const pO   = Math.min(Math.round((myO/avgO)*100), 150);
+  const pR   = Math.min(Math.round((myR/(avgR||1))*100), 150);
+  document.getElementById('benchRows').innerHTML = `
+    <div class="bench-row"><div class="bench-label">Παραγγελίες / μήνα</div><div class="bench-vals"><span class="bench-you">${myO}</span><span class="bench-avg">Μέσος: ${avgO}</span></div></div>
+    <div class="bench-bar-wrap"><div class="bench-bar" style="width:${Math.min(pO,100)}%;background:${pO>=100?'var(--green)':'var(--red)'}"></div></div>
+    <div class="bench-row"><div class="bench-label">Βαθμολογία</div><div class="bench-vals"><span class="bench-you">${myR} ★</span><span class="bench-avg">Μέσος: ${avgR} ★</span></div></div>
+    <div class="bench-bar-wrap"><div class="bench-bar" style="width:${Math.min(pR,100)}%;background:${pR>=100?'var(--green)':'var(--red)'}"></div></div>`;
+}
+
+// ── CATALOG ────────────────────────────────────
+async function loadCatalog() {
+  if (catalogLoaded) return;
+  try {
+    const [cats, prods, mods] = await Promise.all([
+      sbFetch(`categories?store_id=eq.${VENDOR_ID}&select=*&order=sort_order`),
+      sbFetch(`products?store_id=eq.${VENDOR_ID}&select=*`),
+      sbFetch(`modifier_options?store_id=eq.${VENDOR_ID}&select=*`)
+    ]);
+    allCategories = Array.isArray(cats)  ? cats  : [];
+    allProducts   = Array.isArray(prods) ? prods : [];
+    allModifiers  = Array.isArray(mods)  ? mods  : [];
+    renderCatSidebar();
+    catalogLoaded = true;
+  } catch(e) {
+    document.getElementById('catalogLoading').innerHTML = '<span style="color:var(--red)">Σφάλμα φόρτωσης.</span>';
+  }
+}
+
+function renderCatSidebar() {
+  const list = document.getElementById('catList');
+  list.innerHTML = allCategories.map(c => {
+    const cnt = allProducts.filter(p => p.category_id === c.category_id).length;
+    return `<div class="cat-item" id="cat-${c.category_id}" onclick="showCat('${c.category_id}','${escA(c.name)}')"><span>${escH(c.name)}</span><span class="cat-badge">${cnt}</span></div>`;
+  }).join('');
+  if (allCategories.length > 0) showCat(allCategories[0].category_id, allCategories[0].name);
+}
+
+function showCat(catId, catName) {
+  activeCatId = catId;
+  document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('cat-' + catId);
+  if (el) el.classList.add('active');
+  document.getElementById('catalogCatTitle').textContent = catName;
+  const prods = allProducts.filter(p => p.category_id === catId);
+  document.getElementById('productList').innerHTML = prods.map(p => {
+    const mods = allModifiers.filter(m => m.product_id === p.product_id);
+    const hasModifiers = mods.length > 0;
+    const groups = {};
+    mods.forEach(m => {
+      if (!groups[m.group_name]) groups[m.group_name] = [];
+      groups[m.group_name].push(m);
+    });
+    const isExpanded = expandedCards.has(p.product_id);
+    return `
+    <div class="product-card${p.available ? '' : ' unavailable'}" id="pcard-${p.product_id}">
+      <div class="product-card-top">
+        <div class="product-info">
+          <div class="product-name" style="display:flex;align-items:center;gap:5px;">
+            ${escH(p.name)}
+            ${hasModifiers ? `<button class="product-expand-btn${isExpanded?' open':''}" id="expbtn-${p.product_id}" onclick="event.stopPropagation();toggleExpand('${p.product_id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>` : ''}
+          </div>
+          <div class="product-desc">${p.description ? escH(p.description) : '—'}</div>
+        </div>
+        <div class="product-price">${parseFloat(p.base_price||0).toFixed(2)} €</div>
+        <div class="product-toggle${p.available?' on':''}" onclick="event.stopPropagation();toggleProduct('${p.product_id}','${escA(p.name)}',${p.available})"></div>
+      </div>
+      ${hasModifiers ? `
+      <div class="modifier-section${isExpanded?' open':''}" id="modsec-${p.product_id}">
+        ${Object.entries(groups).map(([gName, opts]) => `
+          <div class="modifier-group">
+            <div class="modifier-group-title">${escH(gName)}</div>
+            <div class="modifier-options-list">
+              ${opts.map(o => `
+                <div class="mod-chip ${o.available?'available':'unavailable'}" id="modchip-${o.id}" onclick="toggleModifier(${o.id},'${escA(o.option_name)}',${o.available},'${p.product_id}')">
+                  <div class="mod-chip-dot"></div>
+                  <span>${escH(o.option_name)}</span>
+                  ${o.price_delta > 0 ? `<span class="mod-chip-price">+${parseFloat(o.price_delta).toFixed(2)}€</span>` : ''}
+                </div>`).join('')}
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('catalogLoading').style.display = 'none';
+  document.getElementById('catalogProducts').style.display = 'block';
+}
+
+function toggleExpand(prodId) {
+  if (expandedCards.has(prodId)) {
+    expandedCards.delete(prodId);
+  } else {
+    expandedCards.add(prodId);
+  }
+  const btn = document.getElementById('expbtn-' + prodId);
+  const sec = document.getElementById('modsec-' + prodId);
+  if (btn) btn.classList.toggle('open', expandedCards.has(prodId));
+  if (sec) sec.classList.toggle('open', expandedCards.has(prodId));
+}
+
+async function toggleModifier(modId, optName, currentlyOn, prodId) {
+  const newVal = !currentlyOn;
+  const mod = allModifiers.find(m => m.id === modId);
+  if (!mod) return;
+  mod.available = newVal;
+  const chip = document.getElementById('modchip-' + modId);
+  if (chip) {
+    chip.className = 'mod-chip ' + (newVal ? 'available' : 'unavailable');
+    chip.querySelector('.mod-chip-dot').style.background = newVal ? '#00a651' : 'var(--red)';
+  }
+  try {
+    await sbPatch('modifier_options', `id=eq.${modId}`, { available: newVal });
+    showToast(optName + ': ' + (newVal ? 'Διαθέσιμο' : 'Μη διαθέσιμο'), newVal);
+  } catch(e) {
+    mod.available = currentlyOn;
+    showToast('Σφάλμα ενημέρωσης', false);
+    const chip2 = document.getElementById('modchip-' + modId);
+    if (chip2) chip2.className = 'mod-chip ' + (currentlyOn ? 'available' : 'unavailable');
+  }
+}
+
+async function toggleProduct(prodId, prodName, currentlyOn) {
+  const newVal = !currentlyOn;
+  const prod   = allProducts.find(p => p.product_id === prodId);
+  if (!prod) return;
+  // Optimistic UI
+  prod.available = newVal;
+  const card   = document.getElementById('pcard-' + prodId);
+  if (card) {
+    card.querySelector('.product-toggle').classList.toggle('on', newVal);
+    card.classList.toggle('unavailable', !newVal);
+  }
+  try {
+    await sbPatch('products', `store_id=eq.${VENDOR_ID}&product_id=eq.${prodId}`, { available: newVal });
+    showToast(prodName + ': ' + (newVal ? 'Διαθέσιμο' : 'Μη διαθέσιμο'), newVal);
+  } catch(e) {
+    prod.available = currentlyOn;
+    showCat(activeCatId, allCategories.find(c=>c.category_id===activeCatId)?.name||'');
+    showToast('Σφάλμα ενημέρωσης', false);
+  }
+}
+
+// Refresh catalog every 4s — smart diff: patch only changed items, no full re-render
+setInterval(async () => {
+  if (currentPage === 'catalog' && catalogLoaded) {
+    const [prods, mods] = await Promise.all([
+      sbFetch(`products?store_id=eq.${VENDOR_ID}&select=*`).catch(()=>null),
+      sbFetch(`modifier_options?store_id=eq.${VENDOR_ID}&select=*`).catch(()=>null)
+    ]);
+    // Patch products — only update changed toggles in-place
+    if (prods) {
+      prods.forEach(newP => {
+        const oldP = allProducts.find(p => p.product_id === newP.product_id);
+        if (oldP && oldP.available !== newP.available) {
+          oldP.available = newP.available;
+          const card = document.getElementById('pcard-' + newP.product_id);
+          if (card) {
+            card.querySelector('.product-toggle')?.classList.toggle('on', newP.available);
+            card.classList.toggle('unavailable', !newP.available);
+          }
+        }
+      });
+    }
+    // Patch modifiers — only update changed chips in-place
+    if (mods) {
+      mods.forEach(newM => {
+        const oldM = allModifiers.find(m => m.id === newM.id);
+        if (oldM && oldM.available !== newM.available) {
+          oldM.available = newM.available;
+          const chip = document.getElementById('modchip-' + newM.id);
+          if (chip) {
+            chip.className = 'mod-chip ' + (newM.available ? 'available' : 'unavailable');
+            const dot = chip.querySelector('.mod-chip-dot');
+            if (dot) dot.style.background = newM.available ? '#00a651' : 'var(--red)';
+          }
+        }
+      });
+    }
+  }
+}, 4000);
+
+// ── SCHEDULE ───────────────────────────────────
+async function loadSchedule() {
+  if (!storeData) return;
+  const o = storeData.hours_open  || '09:00';
+  const c = storeData.hours_close || '22:00';
+  originalSchedule = { open: o, close: c };
+  renderSchedule(o, c);
+  scheduleLoaded = true;
+}
+
+function renderSchedule(openT, closeT) {
+  const rows = document.getElementById('scheduleRows');
+  rows.innerHTML = DAYS.map(day => `
+    <div class="schedule-row">
+      <div class="schedule-day">${day}</div>
+      <div class="schedule-time">
+        <span class="time-display">${openT} — ${closeT}</span>
+        <span class="time-edit" style="display:none;align-items:center;gap:6px;">
+          <input type="time" class="open-input" value="${openT}">
+          <span class="schedule-sep">—</span>
+          <input type="time" class="close-input" value="${closeT}">
+        </span>
+      </div>
+    </div>`).join('');
+}
+
+function toggleScheduleEdit() {
+  scheduleEditing = !scheduleEditing;
+  const btn = document.getElementById('scheduleEditBtn');
+  btn.classList.toggle('editing', scheduleEditing);
+  btn.innerHTML = scheduleEditing
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Ακύρωση'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Επεξεργασία';
+  document.getElementById('scheduleSaveBar').classList.toggle('visible', scheduleEditing);
+  document.querySelectorAll('.time-display').forEach(el => el.style.display = scheduleEditing ? 'none' : 'inline');
+  document.querySelectorAll('.time-edit').forEach(el => el.style.display = scheduleEditing ? 'flex' : 'none');
+}
+
+async function saveSchedule() {
+  const firstRow = document.querySelector('.schedule-row');
+  if (!firstRow) return;
+  const newOpen  = firstRow.querySelector('.open-input').value;
+  const newClose = firstRow.querySelector('.close-input').value;
+  try {
+    await sbPatch('partners', `store_id=eq.${VENDOR_ID}`, { hours_open: newOpen, hours_close: newClose });
+    storeData.hours_open = newOpen; storeData.hours_close = newClose;
+    originalSchedule = { open: newOpen, close: newClose };
+    document.querySelectorAll('.time-display').forEach(el => el.textContent = newOpen + ' — ' + newClose);
+    showToast('Ωράριο αποθηκεύτηκε: ' + newOpen + ' — ' + newClose, true);
+  } catch(e) { showToast('Σφάλμα αποθήκευσης', false); }
+  scheduleEditing = false;
+  document.getElementById('scheduleEditBtn').classList.remove('editing');
+  document.getElementById('scheduleEditBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Επεξεργασία';
+  document.getElementById('scheduleSaveBar').classList.remove('visible');
+  document.querySelectorAll('.time-display').forEach(el => el.style.display = 'inline');
+  document.querySelectorAll('.time-edit').forEach(el => el.style.display = 'none');
+}
+
+function cancelScheduleEdit() {
+  scheduleEditing = false;
+  document.getElementById('scheduleEditBtn').classList.remove('editing');
+  document.getElementById('scheduleEditBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Επεξεργασία';
+  document.getElementById('scheduleSaveBar').classList.remove('visible');
+  if (originalSchedule) renderSchedule(originalSchedule.open, originalSchedule.close);
+  document.querySelectorAll('.time-display').forEach(el => el.style.display = 'inline');
+  document.querySelectorAll('.time-edit').forEach(el => el.style.display = 'none');
+}
+
+// Refresh schedule every 4s when viewing it and not editing
+setInterval(async () => {
+  if (currentPage === 'schedule' && scheduleLoaded && !scheduleEditing) {
+    const rows = await sbFetch(`partners?store_id=eq.${VENDOR_ID}&select=hours_open,hours_close`).catch(()=>null);
+    if (rows?.length) {
+      const o = rows[0].hours_open, c = rows[0].hours_close;
+      if (o !== storeData?.hours_open || c !== storeData?.hours_close) {
+        if (storeData) { storeData.hours_open = o; storeData.hours_close = c; }
+        renderSchedule(o, c);
+      }
+    }
+  }
+}, 4000);
+
+// ── NAVIGATION ─────────────────────────────────
+const PAGE_TITLES = { orders: 'Live παραγγελίες', performance: 'Απόδοση', catalog: 'Διαχείριση καταλόγου', schedule: 'Ωράριο Λειτουργίας' };
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-' + page)?.classList.add('active');
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[page] || '';
+  currentPage = page;
+  if (page === 'catalog'  && !catalogLoaded)  loadCatalog();
+  if (page === 'schedule' && !scheduleLoaded) loadSchedule();
+  if (window.innerWidth <= 768) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
+}
+
+// ── CHAT PANEL ─────────────────────────────────
+function toggleChat() {
+  const panel = document.getElementById('chatPanel');
+  chatOpen = !chatOpen;
+  if (chatOpen) {
+    panel.classList.add('open');
+    if (!chatInitialized) { initChat(); chatInitialized = true; }
+    setTimeout(() => document.getElementById('chatInput').focus(), 100);
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function initChat() {
+  document.getElementById('chatInput').disabled = false;
+  document.getElementById('chatSend').disabled  = true;
+  const hour  = new Date().getHours();
+  const greet = hour < 12 ? 'Καλημέρα' : 'Καλησπέρα';
+  addBotMsg(`${greet}${storeData?.name ? ', ' + storeData.name : ''}! Πώς μπορώ να σε βοηθήσω;`,
+    null, null, ['Πώς πάω;', 'Τι να βελτιώσω;', 'Δείξε ιστορικό']
+  );
+  // Τα δεδομένα περνάνε μέσω metadata σε κάθε μήνυμα — δεν χρειάζεται init call
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text  = input.value.trim();
+  if (!text || isTyping) return;
+  isTyping = true;
+  input.value = ''; input.disabled = true;
+  document.getElementById('chatSend').disabled = true;
+  addUserMsg(text);
+  try { await callAgent(text); }
+  finally { input.disabled = false; input.focus(); }
+}
+
+async function callAgent(text, silent) {
+  const typEl = silent ? null : showTyping();
+  let idx = 0;
+  if (!silent) {
+    const stEl = typEl.querySelector('.typing-status');
+    thinkingIv = setInterval(() => { stEl.textContent = THINKING[idx++ % THINKING.length]; }, 1400);
+  }
+  try {
+    const res = await fetchRetry(N8N_WEBHOOK, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'sendMessage', sessionId,
+        messageId: 'msg_' + Date.now(),
+        chatInput: text,
+        metadata: {
+          vendor_id: VENDOR_ID,
+          store_name: storeData?.name || '',
+          lifecycle_stage: storeData?.lifecycle_stage || 'growth',
+          monthly_orders: storeData?.monthly_orders || 0,
+          avg_rating: storeData?.avg_rating || 0,
+          status: storeData?.status || 'closed',
+          hours_open: storeData?.hours_open || '',
+          hours_close: storeData?.hours_close || '',
+          category: storeData?.category || '',
+          region: storeData?.region || '',
+          top_items: storeData?.top_items || [],
+          weekly_trend: storeData?.weekly_orders_trend || [],
+          competitor_avg_orders: storeData?.competitor_avg_orders || 0,
+          competitor_avg_rating: storeData?.competitor_avg_rating || 0
+        }
+      })
+    });
+    const data = safeJSON(await res.text());
+    if (!silent) clearTyping(typEl);
+    handleResponse(data, silent);
+    if (!silent) pollStatus(); // άμεσος συγχρονισμός UI μετά από agent response
+  } catch(e) {
+    if (!silent) {
+      clearTyping(typEl);
+      const retry = document.createElement('div');
+      retry.className = 'undo-chip';
+      retry.innerHTML = '🔄 Δοκίμασε ξανά';
+      retry.onclick = () => { retry.remove(); callAgent(text); };
+      addBotMsg('Υπήρξε πρόβλημα σύνδεσης.', retry);
+      showToast('Σφάλμα σύνδεσης', false);
+    }
+  } finally {
+    if (!silent) isTyping = false;
+  }
+}
+
+function handleResponse(data, silent) {
+  let p = data;
+  if (typeof data.output === 'string') {
+    const inner = safeJSON(data.output);
+    if (inner && typeof inner === 'object' && (inner.output || inner.widget)) p = inner;
+  }
+  const text   = p.output || p.text || p.message || '';
+  const hypo   = p.hypothesis || null;
+  const hypoLbl= p.hypothesis_label || 'Εκτίμηση';
+  const widget = p.widget || null;
+  const qr     = p.quick_replies || [];
+
+  // Silent init — αγνόησε την απάντηση, μόνο φόρτωσε τα δεδομένα
+  if (silent) return;
+
+  if (widget?.type === 'alert') {
+    showToast(widget.message || 'Προσοχή', false);
+    return;
+  }
+
+  let inlineEl = null;
+  if (widget) {
+    switch(widget.type) {
+      case 'confirm_diff':
+        inlineEl = buildDiffCard(widget.old_value, widget.new_value,
+          () => execConfirm(widget),
+          () => addBotMsg('Εντάξει, δεν έγινε καμία αλλαγή.')
+        );
+        break;
+      case 'show_kpi':
+        inlineEl = buildKPIWidget(widget);
+        break;
+      case 'show_action':
+        inlineEl = buildActionWidget(widget);
+        break;
+      case 'show_benchmark':
+        inlineEl = buildBenchmarkWidget(widget);
+        break;
+      case 'show_timeline':
+        inlineEl = buildTimelineWidget(widget);
+        break;
+      case 'show_prediction':
+        inlineEl = buildPredictionWidget(widget);
+        break;
+    }
+  }
+
+  let hypoEl = null;
+  if (hypo) {
+    const sources = p.sources || [];
+    const confidence = p.confidence || null;
+    const SOURCE_LABELS = {
+      'weather_forecast': '🌤 Πρόβλεψη καιρού',
+      'store_context': '📊 Δεδομένα καταστήματος',
+      'monthly_orders': '📦 Παραγγελίες μήνα',
+      'avg_rating': '⭐ Βαθμολογία',
+      'competitor_avg_orders': '🏪 Σύγκριση αγοράς',
+      'competitor_avg_rating': '🏪 Rating αγοράς',
+      'weekly_trend': '📈 Εβδομαδιαία τάση',
+      'actions_log': '📋 Ιστορικό ενεργειών',
+      'top_items': '🍽 Top προϊόντα',
+      'events': '🎉 Τοπικά events',
+    };
+    const sourcesHtml = sources.length
+      ? sources
+          .filter(s => !['store_context','weather_forecast'].includes(s) || sources.length <= 2)
+          .map(s => `<span class="hypo-source-chip">${escH(SOURCE_LABELS[s] || s)}</span>`)
+          .join(' ')
+      : '';
+    const confBadge = confidence
+      ? `<span class="hypo-source-chip" style="background:#f0fff4;color:#2e7d32;border-color:#a5d6a7;">${confidence === 'high' ? '✓ Υψηλή βεβαιότητα' : confidence === 'medium' ? '~ Μέτρια βεβαιότητα' : '? Χαμηλή βεβαιότητα'}</span>`
+      : '';
+    hypoEl = document.createElement('div');
+    hypoEl.className = 'hypo-wrap';
+    const hypoTextEl = document.createElement('div');
+    hypoTextEl.className = 'hypo-text';
+    hypoTextEl.textContent = hypo;
+    const hypoLblEl = document.createElement('div');
+    hypoLblEl.className = 'hypo-label';
+    hypoLblEl.textContent = '~ ' + hypoLbl;
+    const hypoSourcesEl = document.createElement('div');
+    hypoSourcesEl.className = 'hypo-sources';
+    hypoSourcesEl.innerHTML = confBadge + sourcesHtml;
+    const whyLink = document.createElement('span');
+    whyLink.className = 'why-link';
+    whyLink.innerHTML = 'Εμφάνισε Ανάλυση <span class="why-arrow">→</span>';
+    whyLink.addEventListener('click', function() {
+      const open = hypoTextEl.classList.toggle('expanded');
+      hypoSourcesEl.classList.toggle('expanded', open);
+      whyLink.classList.toggle('open', open);
+      whyLink.innerHTML = open
+        ? 'Κλείσιμο <span class="why-arrow" style="transform:rotate(90deg);display:inline-block">→</span>'
+        : 'Εμφάνισε Ανάλυση <span class="why-arrow">→</span>';
+    });
+    hypoEl.appendChild(hypoLblEl);
+    hypoEl.appendChild(hypoTextEl);
+    hypoEl.appendChild(hypoSourcesEl);
+    hypoEl.appendChild(whyLink);
+  }
+
+  addBotMsg(text, inlineEl, hypoEl, qr);
+}
+
+async function execConfirm(widget) {
+  try {
+    const field = widget.field || 'status';
+    const body  = {};
+    if (field === 'hours') {
+      const parts = (widget.new_value_raw || widget.new_value).split('-');
+      if (parts.length === 2) { body.hours_open = parts[0].trim(); body.hours_close = parts[1].trim(); }
+    } else {
+      body[field] = widget.new_value_raw || widget.new_value;
+    }
+    await sbPatch('partners', `store_id=eq.${VENDOR_ID}`, body);
+    Object.assign(storeData || {}, body);
+    if (field === 'status') renderStatusUI();
+    if (field === 'hours' && scheduleLoaded) renderSchedule(body.hours_open, body.hours_close);
+    addBotMsg('✓ ' + (widget.success_message || 'Η αλλαγή αποθηκεύτηκε.'), buildUndoChip(() => execRevert(widget)));
+    showToast('Αποθηκεύτηκε', true);
+  } catch(e) {
+    addBotMsg('Υπήρξε πρόβλημα. Προσπάθησε ξανά.');
+    showToast('Σφάλμα', false);
+  }
+}
+
+async function execRevert(widget) {
+  try {
+    const field = widget.field || 'status';
+    const body  = {};
+    if (field === 'hours') {
+      const parts = (widget.old_value_raw || widget.old_value).split('-');
+      if (parts.length === 2) { body.hours_open = parts[0].trim(); body.hours_close = parts[1].trim(); }
+    } else {
+      body[field] = widget.old_value_raw || widget.old_value;
+    }
+    await sbPatch('partners', `store_id=eq.${VENDOR_ID}`, body);
+    Object.assign(storeData || {}, body);
+    if (field === 'status') renderStatusUI();
+    addBotMsg('↩ Αναίρεση ολοκληρώθηκε.');
+    showToast('Αναίρεση', true);
+  } catch(e) { showToast('Σφάλμα αναίρεσης', false); }
+}
+
+// ── MESSAGE BUILDERS ───────────────────────────
+function now() { return new Date().toLocaleTimeString('el',{hour:'2-digit',minute:'2-digit'}); }
+
+function addUserMsg(text) {
+  const d = document.createElement('div');
+  d.className = 'cmsg user';
+  d.innerHTML = `<div class="cmsg-avatar">${getInitials(storeData?.name||VENDOR_ID)}</div>
+    <div class="cmsg-body"><div class="cmsg-bubble">${escH(text)}</div><div class="cmsg-time">${now()}</div></div>`;
+  document.getElementById('chatMessages').appendChild(d);
+  scrollChat();
+}
+
+function addBotMsg(text, inlineEl, hypoEl, qr) {
+  const d = document.createElement('div');
+  d.className = 'cmsg bot';
+  d.innerHTML = `<div class="cmsg-avatar">✨</div>
+    <div class="cmsg-body">${text ? `<div class="cmsg-bubble">${escH(text)}</div>` : ''}<div class="cmsg-time">${now()}</div></div>`;
+  const body = d.querySelector('.cmsg-body');
+  if (inlineEl) body.appendChild(inlineEl);
+  if (hypoEl)   body.appendChild(hypoEl);
+  if (qr?.length) body.appendChild(buildQR(qr));
+  document.getElementById('chatMessages').appendChild(d);
+  scrollChat();
+}
+
+function buildDiffCard(oldV, newV, onOk, onNo) {
+  const w = document.createElement('div');
+  w.className = 'widget-inline';
+  w.innerHTML = `<div class="diff-card"><div class="diff-title">Επιβεβαίωση αλλαγής</div>
+    <div class="diff-row"><span class="diff-old">${escH(oldV)}</span><span class="diff-arrow">→</span><span class="diff-new">${escH(newV)}</span></div>
+    <div class="diff-btns"><button class="diff-btn cancel">Άκυρο</button><button class="diff-btn confirm">✓ Επιβεβαίωση</button></div></div>`;
+  w.querySelector('.diff-btn.cancel').onclick  = () => { w.remove(); if(onNo)  onNo();  };
+  w.querySelector('.diff-btn.confirm').onclick = () => { w.remove(); if(onOk) onOk(); };
+  return w;
+}
+
+function buildKPIWidget(widget) {
+  const w = document.createElement('div');
+  w.className = 'widget-inline';
+  w.innerHTML = `<div class="kpi-mini"><div class="kmi-item" style="display:flex;gap:8px;padding:10px;">${(widget.items||[]).map(k=>`<div class="kmi-item" style="flex:1"><div class="kmi-val">${escH(String(k.value))}</div><div class="kmi-lbl">${escH(k.label)}</div><div class="kmi-d ${k.trend||'flat'}">${escH(k.delta||'')}</div></div>`).join('')}</div></div>`;
+  return w;
+}
+
+function buildActionWidget(widget) {
+  const w = document.createElement('div');
+  w.className = 'widget-inline';
+  w.innerHTML = `<div style="padding:12px 14px;">
+    <div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:6px;line-height:1.4">${escH(widget.description||'')}</div>
+    ${widget.impact ? `<div style="font-size:11px;font-weight:700;color:#1976d2;margin-bottom:6px">📈 ${escH(widget.impact)}</div>` : ''}
+    ${widget.cta ? `<div style="font-size:11px;color:#666;font-style:italic">${escH(widget.cta)}</div>` : ''}
+  </div>`;
+  return w;
+}
+
+function buildBenchmarkWidget(widget) {
+  const w = document.createElement('div');
+  w.className = 'widget-inline';
+  const rows = (widget.metrics||[]).map(m => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f5">
+    <span style="font-size:12px;color:#666">${escH(m.label)}</span>
+    <span style="display:flex;gap:12px">
+      <span style="font-size:13px;font-weight:800;color:#e8001c">${escH(String(m.you))}</span>
+      <span style="font-size:12px;color:#999">avg: ${escH(String(m.avg))}</span>
+    </span>
+  </div>`).join('');
+  w.innerHTML = `<div style="padding:10px 14px">${rows}</div>`;
+  return w;
+}
+
+function buildTimelineWidget(widget) {
+  const ICONS = {hours:'🕐',available:'🟢',unavailable:'🔴',price:'🔄',name:'✏️',status:'🏪',default:'⚙️'};
+  const w = document.createElement('div');
+  w.className = 'widget-inline';
+  const items = (widget.items||[]).map(i => `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f8">
+    <span style="font-size:16px">${ICONS[i.type]||ICONS.default}</span>
+    <div style="flex:1">
+      <div style="font-size:12px;font-weight:700;color:#1a1a2e">${escH(i.action||'')}</div>
+      <div style="font-size:11px;color:#999">${escH(i.meta||'')}</div>
+    </div>
+  </div>`).join('');
+  w.innerHTML = `<div style="padding:8px 14px">${items}</div>`;
+  return w;
+}
+
+function buildPredictionWidget(widget) {
+  const signalColor = {up:'#2e7d32',down:'#c62828',stable:'#1565c0',opportunity:'#e65100'}[widget.demand_signal||'stable']||'#666';
+  const signalIcon = {up:'📈',down:'📉',stable:'➡️',opportunity:'⭐'}[widget.demand_signal||'stable']||'📊';
+  const w = document.createElement('div');
+  w.className = 'widget-inline';
+  w.innerHTML = `<div style="padding:10px 14px">
+    <div style="font-size:11px;color:#999;margin-bottom:4px">${escH(widget.city||'')} · ${escH(widget.forecast_date||'')}</div>
+    <div style="font-size:12px;color:#555;margin-bottom:8px">${escH(widget.weather_summary||'')}</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <span style="font-size:18px">${signalIcon}</span>
+      <span style="font-size:13px;font-weight:800;color:${signalColor}">${escH(widget.demand_estimate||'')}</span>
+    </div>
+    ${widget.recommendation ? `<div style="font-size:11px;color:#1976d2;font-weight:700">💡 ${escH(widget.recommendation)}</div>` : ''}
+  </div>`;
+  return w;
+}
+
+function buildQR(chips) {
+  const w = document.createElement('div');
+  w.className = 'qr-wrap';
+  chips.forEach(c => {
+    const b = document.createElement('div');
+    b.className = 'qr-chip';
+    b.textContent = c.replace(' ✨','');
+    b.onclick = () => { document.getElementById('chatInput').value = b.textContent; sendMessage(); };
+    w.appendChild(b);
+  });
+  return w;
+}
+
+function buildUndoChip(onUndo) {
+  const w = document.createElement('div');
+  w.innerHTML = `<div class="undo-chip">↩ Αναίρεση <span class="undo-timer">30</span></div>`;
+  const chip = w.querySelector('.undo-chip');
+  const tmr  = w.querySelector('.undo-timer');
+  let s = 30;
+  const iv = setInterval(() => { tmr.textContent = --s; if(s<=0){clearInterval(iv);chip.style.opacity='0.4';chip.style.pointerEvents='none';} }, 1000);
+  chip.onclick = () => { clearInterval(iv); chip.remove(); if(onUndo) onUndo(); };
+  return w;
+}
+
+function showTyping() {
+  const d = document.createElement('div');
+  d.className = 'typing-ind';
+  d.innerHTML = `<div class="cmsg-avatar" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--red),#ff4d6a);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:2px;">✨</div>
+    <div class="typing-bbl"><div class="typing-dots"><span></span><span></span><span></span></div><div class="typing-status">${THINKING[0]}</div></div>`;
+  document.getElementById('chatMessages').appendChild(d);
+  scrollChat();
+  return d;
+}
+
+function clearTyping(el) {
+  clearInterval(thinkingIv);
+  if (el?.parentNode) el.remove();
+}
+
+function scrollChat() {
+  const m = document.getElementById('chatMessages');
+  requestAnimationFrame(() => { m.scrollTop = m.scrollHeight; });
+}
+
+// ── UI MISC ────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+
+function toggleAvatarMenu() {
+  const m = document.getElementById('avatarMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', e => {
+  const w = document.querySelector('.avatar-wrap');
+  if (w && !w.contains(e.target)) document.getElementById('avatarMenu').style.display = 'none';
+});
+
+function doLogout() {
+  window.location.replace('intelligence-login.html?t=' + Date.now());
+}
+</script>
+</body>
+</html>
