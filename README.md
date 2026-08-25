@@ -1,4 +1,4 @@
-# Operational CoPilot — Partner Intelligence Platform
+# Operational CoPilot - Partner Intelligence Platform
 
 A multi agent AI system built for restaurant and retail partners on a food delivery platform. It gives partners a single conversational interface for managing their store, understanding their performance, and getting proactive, data driven guidance, instead of navigating a traditional dashboard.
 
@@ -12,11 +12,11 @@ This repository holds the frontend: the chat interface, widget rendering, and lo
 
 A single orchestration workflow routes every incoming message to one of four specialized agents, each with its own memory and tool set.
 
-- **Orchestrator** — classifies intent and routes each message to the right specialist agent, with logic to keep multi turn conversations on topic
-- **Intelligence Agent** — reads and updates store data (products, pricing, availability, modifiers) and can escalate issues that need human follow up
-- **Coaching Agent** — gives partners behavioral, evidence based recommendations, drawing on a knowledge graph of category specific strategies grounded in behavioral economics research (Kahneman and Tversky, Thaler and Sunstein, Deci and Ryan)
-- **Prediction Agent** — forecasts demand shifts from weather and calendar events (holidays, religious observances, local events), with category aware reasoning about how each factor affects a given business type
-- **Knowledge Base Agent** — semantic search over a support knowledge base using vector embeddings, for policy and how to questions
+- **Orchestrator** - classifies intent and routes each message to the right specialist agent, with logic to keep multi turn conversations on topic
+- **Intelligence Agent** - reads and updates store data (products, pricing, availability, modifiers) and can escalate issues that need human follow up
+- **Coaching Agent** - gives partners behavioral, evidence based recommendations, drawing on a knowledge graph of category specific strategies grounded in behavioral economics research (Kahneman and Tversky, Thaler and Sunstein, Deci and Ryan)
+- **Prediction Agent** - forecasts demand shifts from weather and calendar events (holidays, religious observances, local events), with category aware reasoning about how each factor affects a given business type
+- **Knowledge Base Agent** - semantic search over a support knowledge base using vector embeddings, for policy and how to questions
 
 Each agent keeps its own isolated conversation memory while sharing a session context, so the system feels like one coherent assistant rather than four separate bots.
 
